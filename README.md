@@ -176,7 +176,7 @@ streamlit run app.py
 
 App will open at:
 
-http://localhost:8501
+https://nutricalcipro.streamlit.app/
 
 📈 How It Works
 Nutrition Flow
@@ -237,4 +237,5 @@ MIT License (or choose your preferred license)
 👤 Author
 
 Avinash
+
 Python Developer | ML Enthusiast
