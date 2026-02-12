@@ -230,12 +230,3 @@ User-focused interface design
 
 It focuses on correctness and clarity over unnecessary complexity.
 
-📜 License
-
-MIT License (or choose your preferred license)
-
-👤 Author
-
-Avinash
-
-Python Developer | ML Enthusiast
