@@ -1,6 +1,7 @@
 # ================= IMPORTS =================
 import streamlit as st
 import pandas as pd
+from datetime import date, timedelta
 
 
 # ================= PAGE CONFIG =================
@@ -61,6 +62,9 @@ if "daily" not in st.session_state:
         "fat": 0.0
     }
 
+if "history" not in st.session_state:
+    st.session_state.history = {}
+
 if "recommended_goals" not in st.session_state:
     st.session_state.recommended_goals = {
         "calories": 2000,
@@ -80,6 +84,7 @@ tabs = st.tabs([
     "Nutrition Calculator",
     "Custom Recipe Builder",
     "Daily Tracker",
+    "Weekly Progress",
     "Smart Goal Recommendation"
 ])
 
@@ -128,9 +133,9 @@ with tabs[0]:
     if st.session_state.last_calculation:
         r = st.session_state.last_calculation
 
-        st.metric("Calories", f"{r['calories']:.2f} kcal")
-        st.metric("Protein", f"{r['protein']:.2f} g")
-        st.metric("Carbs", f"{r['carbs']:.2f} g")
+        st.metric("Calories", f"{r['calories']:.2f}")
+        st.metric("Protein", f"{r['protein']:.2f}")
+        st.metric("Carbs", f"{r['carbs']:.2f}")
 
         if st.button("Add to Daily Intake"):
             for k in r:
@@ -180,7 +185,7 @@ with tabs[1]:
 
 
 # ======================================================
-# TAB 3 — DAILY TRACKER
+# TAB 3 — DAILY TRACKER (SMART % + LEADING NUTRIENT)
 # ======================================================
 with tabs[2]:
 
@@ -191,6 +196,7 @@ with tabs[2]:
     protein_goal = st.number_input("Protein Goal (g)", value=int(goals["protein"]))
     carb_goal = st.number_input("Carb Goal (g)", value=int(goals["carbs"]))
 
+    # Percent calculations (safe)
     cal_pct = min(daily["calories"]/calorie_goal,1.0) if calorie_goal else 0
     prot_pct = min(daily["protein"]/protein_goal,1.0) if protein_goal else 0
     carb_pct = min(daily["carbs"]/carb_goal,1.0) if carb_goal else 0
@@ -207,6 +213,7 @@ with tabs[2]:
               delta=f"{carb_pct*100:.1f}% of goal")
     st.progress(carb_pct)
 
+    # Determine leading nutrient
     percentages = {
         "Calories": cal_pct,
         "Protein": prot_pct,
@@ -216,11 +223,45 @@ with tabs[2]:
     leading = max(percentages, key=percentages.get)
     st.info(f"Most completed nutrient today: **{leading}**")
 
+    if st.button("Save Today's Data"):
+        st.session_state.history[str(date.today())] = {
+            "calories": daily["calories"],
+            "protein": daily["protein"],
+            "carbs": daily["carbs"],
+            "goal": calorie_goal
+        }
+        st.success("Saved to weekly history.")
+
 
 # ======================================================
-# TAB 4 — SMART GOAL RECOMMENDATION
+# TAB 4 — WEEKLY PROGRESS
 # ======================================================
 with tabs[3]:
+
+    history = st.session_state.history
+
+    if not history:
+        st.info("No saved data yet.")
+    else:
+        df_history = pd.DataFrame.from_dict(history, orient="index")
+        df_history.index = pd.to_datetime(df_history.index)
+        df_history = df_history.sort_index()
+
+        last_week = date.today() - timedelta(days=7)
+        df_week = df_history[df_history.index >= pd.to_datetime(last_week)]
+
+        if not df_week.empty:
+            st.line_chart(df_week[["calories","protein","carbs"]])
+
+            st.metric("Weekly Avg Calories", f"{df_week['calories'].mean():.2f}")
+            st.metric("Weekly Avg Protein", f"{df_week['protein'].mean():.2f}")
+            st.metric("Weekly Avg Carbs", f"{df_week['carbs'].mean():.2f}")
+
+
+# ======================================================
+# TAB 5 — SMART GOAL RECOMMENDATION
+# ======================================================
+with tabs[4]:
 
     weight = st.number_input("Weight (kg)", value=70.0)
     height = st.number_input("Height (cm)", value=170.0)
