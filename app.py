@@ -20,7 +20,6 @@ def load_data():
         st.error("database.csv file not found.")
         st.stop()
 
-    # Clean column names
     df.columns = (
         df.columns
         .str.strip()
@@ -32,31 +31,21 @@ def load_data():
     )
 
     required_columns = [
-        "dish_name",
-        "calories",
-        "carbohydrates",
-        "protein",
-        "fats",
-        "fibre",
-        "free_sugar",
-        "sodium"
+        "dish_name","calories","carbohydrates",
+        "protein","fats","fibre","free_sugar","sodium"
     ]
 
-    missing = [col for col in required_columns if col not in df.columns]
+    missing = [c for c in required_columns if c not in df.columns]
     if missing:
         st.error(f"Missing required columns: {missing}")
         st.stop()
 
-    # Ensure numeric columns are numeric
     numeric_cols = required_columns[1:]
     df[numeric_cols] = df[numeric_cols].apply(
         pd.to_numeric, errors="coerce"
     )
 
     df = df.dropna()
-
-    # Standardize dish name casing
-    df["dish_name"] = df["dish_name"].str.strip()
 
     return df
 
@@ -90,17 +79,17 @@ tabs = st.tabs([
 
 
 # ======================================================
-# TAB 1 — NUTRITION CALCULATOR (FULL FEATURE FIXED)
+# TAB 1 — NUTRITION CALCULATOR (FULL FEATURED)
 # ======================================================
 with tabs[0]:
 
-    st.subheader("Calculate Nutrition")
+    st.subheader("Calculate Dish Nutrition")
 
     col1, col2, col3 = st.columns([2, 1, 1])
 
     with col1:
         dish = st.selectbox(
-            "Select Dish",
+            "Dish Name",
             sorted(df["dish_name"].unique())
         )
 
@@ -113,7 +102,7 @@ with tabs[0]:
         )
 
     with col3:
-        servings = st.number_input(
+        number_of_servings = st.number_input(
             "Number of Servings",
             min_value=1,
             max_value=50,
@@ -122,47 +111,47 @@ with tabs[0]:
 
     if st.button("Calculate Nutrition", key="calc_btn"):
 
-        food_row = df[df["dish_name"] == dish]
+        row = df[df["dish_name"] == dish]
 
-        if food_row.empty:
-            st.error("Selected dish not found in database.")
-        else:
-            row = food_row.iloc[0]
+        if row.empty:
+            st.error("Selected dish not found in dataset.")
+            st.stop()
 
-            # Total quantity consumed
-            total_quantity = quantity_per_serving * servings
-            scale = total_quantity / 100
+        row = row.iloc[0]
 
-            # Nutrient calculations
-            calories = row["calories"] * scale
-            carbs = row["carbohydrates"] * scale
-            protein = row["protein"] * scale
-            fat = row["fats"] * scale
-            fiber = row["fibre"] * scale
-            sugar = row["free_sugar"] * scale
-            sodium = row["sodium"] * scale
+        total_quantity = quantity_per_serving * number_of_servings
+        scale = total_quantity / 100
 
-            st.subheader("Nutrition Breakdown")
-            st.write(f"Total Quantity Consumed: {total_quantity} grams")
+        calories = row["calories"] * scale
+        carbs = row["carbohydrates"] * scale
+        protein = row["protein"] * scale
+        fat = row["fats"] * scale
+        fibre = row["fibre"] * scale
+        sugar = row["free_sugar"] * scale
+        sodium = row["sodium"] * scale
 
-            c1, c2, c3 = st.columns(3)
-            c1.metric("Calories", f"{calories:.2f} kcal")
-            c2.metric("Carbohydrates", f"{carbs:.2f} g")
-            c3.metric("Protein", f"{protein:.2f} g")
+        st.subheader("Nutrition Breakdown")
+        st.write(f"Total Quantity Consumed: {total_quantity} grams")
 
-            c4, c5, c6, c7 = st.columns(4)
-            c4.metric("Fat", f"{fat:.2f} g")
-            c5.metric("Fiber", f"{fiber:.2f} g")
-            c6.metric("Sugar", f"{sugar:.2f} g")
-            c7.metric("Sodium", f"{sodium:.2f} mg")
+        c1, c2, c3 = st.columns(3)
+        c1.metric("Calories", f"{calories:.2f} kcal")
+        c2.metric("Carbohydrates", f"{carbs:.2f} g")
+        c3.metric("Protein", f"{protein:.2f} g")
 
-            # Add to daily totals
-            if st.button("Add to Daily Intake", key="add_single"):
-                st.session_state.daily_calories += calories
-                st.session_state.daily_protein += protein
-                st.session_state.daily_carbs += carbs
-                st.session_state.daily_fat += fat
-                st.success("Added to daily totals.")
+        c4, c5, c6, c7 = st.columns(4)
+        c4.metric("Fat", f"{fat:.2f} g")
+        c5.metric("Fibre", f"{fibre:.2f} g")
+        c6.metric("Sugar", f"{sugar:.2f} g")
+        c7.metric("Sodium", f"{sodium:.2f} mg")
+
+        if st.button("Add to Daily Intake", key="add_single"):
+
+            st.session_state.daily_calories += calories
+            st.session_state.daily_protein += protein
+            st.session_state.daily_carbs += carbs
+            st.session_state.daily_fat += fat
+
+            st.success("Logged successfully.")
 
 
 # ======================================================
@@ -202,7 +191,7 @@ with tabs[1]:
         st.divider()
 
         c1, c2, c3, c4 = st.columns(4)
-        c1.metric("Calories", f"{total_cal:.2f} kcal")
+        c1.metric("Calories", f"{total_cal:.2f}")
         c2.metric("Carbs", f"{total_carbs:.2f} g")
         c3.metric("Protein", f"{total_protein:.2f} g")
         c4.metric("Fat", f"{total_fat:.2f} g")
@@ -236,8 +225,7 @@ with tabs[2]:
     st.progress(min(progress, 1.0))
 
     st.divider()
-
-    st.subheader("Protein Goal")
+    st.subheader("Protein Tracker")
 
     protein_goal = st.number_input(
         "Daily Protein Goal (g)",
@@ -246,17 +234,18 @@ with tabs[2]:
         value=120
     )
 
-    st.metric("Protein Today", f"{st.session_state.daily_protein:.2f} g")
+    st.metric(
+        "Protein Today",
+        f"{st.session_state.daily_protein:.2f} g"
+    )
 
     protein_progress = (
         st.session_state.daily_protein / protein_goal
         if protein_goal > 0 else 0
     )
-
     st.progress(min(protein_progress, 1.0))
 
     st.divider()
-
     st.subheader("Macro Distribution")
 
     carb_cals = st.session_state.daily_carbs * 4
@@ -270,6 +259,45 @@ with tabs[2]:
         st.write(f"Protein: {(protein_cals/total_macro_cals)*100:.1f}%")
         st.write(f"Fat: {(fat_cals/total_macro_cals)*100:.1f}%")
 
+    st.divider()
+    st.subheader("Calorie Surplus / Deficit")
+
+    weight = st.number_input("Weight (kg)", min_value=30.0, value=70.0)
+    height = st.number_input("Height (cm)", min_value=120.0, value=170.0)
+    age = st.number_input("Age", min_value=10, value=25)
+    gender = st.selectbox("Gender", ["Male", "Female"])
+
+    activity_map = {
+        "Sedentary": 1.2,
+        "Lightly Active": 1.375,
+        "Moderately Active": 1.55,
+        "Very Active": 1.725,
+        "Extra Active": 1.9
+    }
+
+    activity_choice = st.selectbox(
+        "Activity Level",
+        list(activity_map.keys())
+    )
+
+    multiplier = activity_map[activity_choice]
+
+    if gender == "Male":
+        bmr = 10 * weight + 6.25 * height - 5 * age + 5
+    else:
+        bmr = 10 * weight + 6.25 * height - 5 * age - 161
+
+    maintenance = bmr * multiplier
+
+    st.metric("Maintenance Calories", f"{maintenance:.0f} kcal")
+
+    diff = total_calories - maintenance
+
+    if diff > 0:
+        st.error(f"Surplus: {diff:.0f} kcal")
+    else:
+        st.success(f"Deficit: {abs(diff):.0f} kcal")
+
     if st.button("Reset Daily Data", key="reset_daily"):
         for key in defaults:
             st.session_state[key] = 0.0
@@ -277,7 +305,7 @@ with tabs[2]:
 
 
 # ======================================================
-# TAB 4 — BMI CALCULATOR
+# TAB 4 — BMI
 # ======================================================
 with tabs[3]:
 
