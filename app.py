@@ -233,29 +233,6 @@ with tabs[2]:
         st.success("Saved to weekly history.")
 
 
-# ======================================================
-# TAB 4 — WEEKLY PROGRESS
-# ======================================================
-with tabs[3]:
-
-    history = st.session_state.history
-
-    if not history:
-        st.info("No saved data yet.")
-    else:
-        df_history = pd.DataFrame.from_dict(history, orient="index")
-        df_history.index = pd.to_datetime(df_history.index)
-        df_history = df_history.sort_index()
-
-        last_week = date.today() - timedelta(days=7)
-        df_week = df_history[df_history.index >= pd.to_datetime(last_week)]
-
-        if not df_week.empty:
-            st.line_chart(df_week[["calories","protein","carbs"]])
-
-            st.metric("Weekly Avg Calories", f"{df_week['calories'].mean():.2f}")
-            st.metric("Weekly Avg Protein", f"{df_week['protein'].mean():.2f}")
-            st.metric("Weekly Avg Carbs", f"{df_week['carbs'].mean():.2f}")
 
 
 # ======================================================
@@ -307,3 +284,4 @@ with tabs[4]:
         st.session_state.recommended_goals["protein"] = protein
         st.session_state.recommended_goals["carbs"] = carbs
         st.success("Goals applied.")
+
