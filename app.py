@@ -207,7 +207,7 @@ with tabs[1]:
 
 
 # ======================================================
-# TAB 3 — DAILY TRACKER
+# TAB 3 — DAILY TRACKER (UPDATED)
 # ======================================================
 with tabs[2]:
 
@@ -215,20 +215,74 @@ with tabs[2]:
 
     daily = st.session_state.daily
 
-    st.metric("Calories Today", f"{daily['calories']:.2f} kcal")
+    # ---------------- CALORIE SECTION ----------------
+    st.markdown("### Calorie Tracking")
 
     calorie_goal = st.number_input(
-        "Daily Calorie Goal",
+        "Daily Calorie Goal (kcal)",
         min_value=1000,
         max_value=6000,
         value=2000,
         key="cal_goal"
     )
 
-    progress = min(daily["calories"] / calorie_goal, 1.0)
-    st.progress(progress)
+    calories_consumed = daily["calories"]
+    calories_remaining = calorie_goal - calories_consumed
+    calorie_percent = min(calories_consumed / calorie_goal, 1.0)
+
+    c1, c2, c3 = st.columns(3)
+    c1.metric("Consumed", f"{calories_consumed:.2f} kcal")
+    c2.metric("Goal", f"{calorie_goal:.0f} kcal")
+    c3.metric(
+        "Remaining",
+        f"{abs(calories_remaining):.2f} kcal",
+        delta=f"{calories_remaining:.2f}"
+    )
+
+    st.progress(calorie_percent)
+
+    if calories_remaining < 0:
+        st.error(f"You are in a surplus of {abs(calories_remaining):.2f} kcal")
+    else:
+        st.success(f"You have {calories_remaining:.2f} kcal remaining")
 
     st.divider()
+
+    # ---------------- PROTEIN SECTION ----------------
+    st.markdown("### Protein Tracking")
+
+    protein_goal = st.number_input(
+        "Daily Protein Goal (g)",
+        min_value=20,
+        max_value=300,
+        value=120,
+        key="protein_goal"
+    )
+
+    protein_consumed = daily["protein"]
+    protein_remaining = protein_goal - protein_consumed
+    protein_percent = min(protein_consumed / protein_goal, 1.0)
+
+    p1, p2, p3 = st.columns(3)
+    p1.metric("Consumed", f"{protein_consumed:.2f} g")
+    p2.metric("Goal", f"{protein_goal:.0f} g")
+    p3.metric(
+        "Remaining",
+        f"{abs(protein_remaining):.2f} g",
+        delta=f"{protein_remaining:.2f}"
+    )
+
+    st.progress(protein_percent)
+
+    if protein_remaining < 0:
+        st.error(f"You exceeded protein goal by {abs(protein_remaining):.2f} g")
+    else:
+        st.success(f"You need {protein_remaining:.2f} g more protein")
+
+    st.divider()
+
+    # ---------------- MACRO DISTRIBUTION ----------------
+    st.markdown("### Macro Distribution")
 
     carb_cals = daily["carbs"] * 4
     protein_cals = daily["protein"] * 4
@@ -240,15 +294,20 @@ with tabs[2]:
         st.write(f"Carbs: {(carb_cals/total_macro)*100:.1f}%")
         st.write(f"Protein: {(protein_cals/total_macro)*100:.1f}%")
         st.write(f"Fat: {(fat_cals/total_macro)*100:.1f}%")
+    else:
+        st.info("No food logged yet.")
 
+    st.divider()
+
+    # ---------------- RESET BUTTON ----------------
     if st.button("Reset Daily Data", key="reset"):
         st.session_state.daily = {
-            "calories":0,
-            "protein":0,
-            "carbs":0,
-            "fat":0
+            "calories": 0.0,
+            "protein": 0.0,
+            "carbs": 0.0,
+            "fat": 0.0
         }
-        st.success("Reset complete.")
+        st.success("Daily data reset.")
 
 
 # ======================================================
@@ -278,3 +337,4 @@ with tabs[3]:
             st.error("Obese")
 
         st.caption("BMI is a screening tool, not medical advice.")
+
