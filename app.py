@@ -84,7 +84,6 @@ tabs = st.tabs([
     "Nutrition Calculator",
     "Custom Recipe Builder",
     "Daily Tracker",
-    "BMI Calculator",
     "Weekly Progress",
     "Smart Goal Recommendation"
 ])
@@ -94,8 +93,6 @@ tabs = st.tabs([
 # TAB 1 — NUTRITION CALCULATOR
 # ======================================================
 with tabs[0]:
-
-    st.subheader("Calculate Dish Nutrition")
 
     dish = st.selectbox(
         "Dish Name",
@@ -124,15 +121,13 @@ with tabs[0]:
             st.stop()
 
         row = row.iloc[0]
-        total_qty = qty_per_serv * servings
-        scale = total_qty / 100
+        scale = (qty_per_serv * servings) / 100
 
         st.session_state.last_calculation = {
             "calories": row["calories"] * scale,
             "carbs": row["carbohydrates"] * scale,
             "protein": row["protein"] * scale,
-            "fat": row["fats"] * scale,
-            "quantity": total_qty
+            "fat": row["fats"] * scale
         }
 
     if st.session_state.last_calculation:
@@ -143,8 +138,8 @@ with tabs[0]:
         st.metric("Carbs", f"{r['carbs']:.2f}")
 
         if st.button("Add to Daily Intake"):
-            for key in ["calories", "protein", "carbs", "fat"]:
-                st.session_state.daily[key] += r[key]
+            for k in r:
+                st.session_state.daily[k] += r[k]
             st.success("Added to daily intake.")
 
 
@@ -158,7 +153,7 @@ with tabs[1]:
         sorted(df["dish_name"].unique())
     )
 
-    total = {"cal":0, "carbs":0, "protein":0, "fat":0}
+    total = {"calories":0, "carbs":0, "protein":0, "fat":0}
 
     for dish in selected:
         qty = st.number_input(
@@ -173,53 +168,60 @@ with tabs[1]:
         if not row.empty:
             row = row.iloc[0]
             scale = qty / 100
-            total["cal"] += row["calories"] * scale
+            total["calories"] += row["calories"] * scale
             total["carbs"] += row["carbohydrates"] * scale
             total["protein"] += row["protein"] * scale
             total["fat"] += row["fats"] * scale
 
     if selected:
-        st.metric("Calories", f"{total['cal']:.2f}")
+        st.metric("Calories", f"{total['calories']:.2f}")
         st.metric("Protein", f"{total['protein']:.2f}")
         st.metric("Carbs", f"{total['carbs']:.2f}")
 
         if st.button("Add Recipe to Daily Intake"):
-            st.session_state.daily["calories"] += total["cal"]
-            st.session_state.daily["protein"] += total["protein"]
-            st.session_state.daily["carbs"] += total["carbs"]
-            st.session_state.daily["fat"] += total["fat"]
+            for k in total:
+                st.session_state.daily[k] += total[k]
             st.success("Recipe logged.")
 
 
 # ======================================================
-# TAB 3 — DAILY TRACKER (NOW WITH CARBS)
+# TAB 3 — DAILY TRACKER (SMART % + LEADING NUTRIENT)
 # ======================================================
 with tabs[2]:
 
     daily = st.session_state.daily
+    goals = st.session_state.recommended_goals
 
-    calorie_goal = st.number_input(
-        "Daily Calorie Goal",
-        value=int(st.session_state.recommended_goals["calories"])
-    )
+    calorie_goal = st.number_input("Calorie Goal", value=int(goals["calories"]))
+    protein_goal = st.number_input("Protein Goal (g)", value=int(goals["protein"]))
+    carb_goal = st.number_input("Carb Goal (g)", value=int(goals["carbs"]))
 
-    protein_goal = st.number_input(
-        "Daily Protein Goal",
-        value=int(st.session_state.recommended_goals["protein"])
-    )
+    # Percent calculations (safe)
+    cal_pct = min(daily["calories"]/calorie_goal,1.0) if calorie_goal else 0
+    prot_pct = min(daily["protein"]/protein_goal,1.0) if protein_goal else 0
+    carb_pct = min(daily["carbs"]/carb_goal,1.0) if carb_goal else 0
 
-    carb_goal = st.number_input(
-        "Daily Carb Goal (g)",
-        value=int(st.session_state.recommended_goals["carbs"])
-    )
+    st.metric("Calories", f"{daily['calories']:.2f} kcal",
+              delta=f"{cal_pct*100:.1f}% of goal")
+    st.progress(cal_pct)
 
-    st.metric("Calories Consumed", f"{daily['calories']:.2f}")
-    st.metric("Protein Consumed", f"{daily['protein']:.2f}")
-    st.metric("Carbs Consumed", f"{daily['carbs']:.2f}")
+    st.metric("Protein", f"{daily['protein']:.2f} g",
+              delta=f"{prot_pct*100:.1f}% of goal")
+    st.progress(prot_pct)
 
-    st.progress(min(daily["calories"]/calorie_goal,1.0))
-    st.progress(min(daily["protein"]/protein_goal,1.0))
-    st.progress(min(daily["carbs"]/carb_goal,1.0))
+    st.metric("Carbs", f"{daily['carbs']:.2f} g",
+              delta=f"{carb_pct*100:.1f}% of goal")
+    st.progress(carb_pct)
+
+    # Determine leading nutrient
+    percentages = {
+        "Calories": cal_pct,
+        "Protein": prot_pct,
+        "Carbs": carb_pct
+    }
+
+    leading = max(percentages, key=percentages.get)
+    st.info(f"Most completed nutrient today: **{leading}**")
 
     if st.button("Save Today's Data"):
         st.session_state.history[str(date.today())] = {
@@ -232,9 +234,9 @@ with tabs[2]:
 
 
 # ======================================================
-# TAB 5 — WEEKLY PROGRESS (FIXED CLEAN CHART)
+# TAB 4 — WEEKLY PROGRESS
 # ======================================================
-with tabs[4]:
+with tabs[3]:
 
     history = st.session_state.history
 
@@ -248,28 +250,18 @@ with tabs[4]:
         last_week = date.today() - timedelta(days=7)
         df_week = df_history[df_history.index >= pd.to_datetime(last_week)]
 
-        if df_week.empty:
-            st.info("No data in last 7 days.")
-        else:
-            st.subheader("Calories & Protein Trend (Last 7 Days)")
-            st.line_chart(df_week[["calories", "protein", "carbs"]])
+        if not df_week.empty:
+            st.line_chart(df_week[["calories","protein","carbs"]])
 
             st.metric("Weekly Avg Calories", f"{df_week['calories'].mean():.2f}")
             st.metric("Weekly Avg Protein", f"{df_week['protein'].mean():.2f}")
             st.metric("Weekly Avg Carbs", f"{df_week['carbs'].mean():.2f}")
 
-            weekly_diff = (df_week["calories"] - df_week["goal"]).sum()
-
-            if weekly_diff > 0:
-                st.error(f"Weekly Surplus: {weekly_diff:.2f}")
-            else:
-                st.success(f"Weekly Deficit: {abs(weekly_diff):.2f}")
-
 
 # ======================================================
-# TAB 6 — SMART GOAL RECOMMENDATION
+# TAB 5 — SMART GOAL RECOMMENDATION
 # ======================================================
-with tabs[5]:
+with tabs[4]:
 
     weight = st.number_input("Weight (kg)", value=70.0)
     height = st.number_input("Height (cm)", value=170.0)
@@ -303,7 +295,7 @@ with tabs[5]:
         target = maintenance
 
     protein = weight * 1.8
-    carbs = (target * 0.5) / 4  # 50% calories from carbs
+    carbs = (target * 0.5) / 4
 
     st.metric("Maintenance", f"{maintenance:.0f}")
     st.metric("Recommended Calories", f"{target:.0f}")
