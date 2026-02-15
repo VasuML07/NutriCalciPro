@@ -1,145 +1,124 @@
-🥗 NutriCalci Pro
+# 🥗 NutriCalci Pro  
+### Intelligent Nutrition Calculator (Python + Streamlit)
 
-Intelligent Nutrition Calculator (Python + Streamlit)
+NutriCalci Pro is a Python-based nutrition tracking system designed to calculate, track, and analyze daily food intake using real nutritional logic and structured architecture.
 
-📌 Overview
+The system focuses on correctness, clarity, and practical usability rather than unnecessary complexity.
 
-NutriCalci Pro is a Python-based nutrition tracking system that allows users to:
+---
 
-Calculate calories and nutrients from food items
+## 🔗 Live Application
 
-Track daily intake
+🌐 https://nutricalcipro.streamlit.app/
 
-Monitor macro distribution
+---
 
-Set calorie and protein goals
+## 🚀 Core Features
 
-Estimate calorie surplus or deficit
+---
 
-Calculate BMI
+### 🥗 Nutrition Calculator
 
-The project is built entirely in Python using Streamlit and focuses on clean architecture, real nutritional logic, and practical usability.
+- Select food from dataset  
+- Enter quantity and servings  
+- Automatically calculates:
+  - Calories  
+  - Protein  
+  - Carbohydrates  
+  - Fat  
+  - Fiber  
+  - Sugar  
+  - Sodium  
+- Displays macro distribution chart  
 
-🚀 Features
-🥗 Nutrition Calculator
+---
 
-Select food from dataset
+### 🍲 Custom Recipe Builder
 
-Enter quantity and servings
+- Select multiple ingredients  
+- Enter quantity for each  
+- Calculates total recipe nutrition  
+- Combined macro breakdown  
 
-Automatically calculate:
+---
 
-Calories
+### 📈 Daily Tracker
 
-Protein
+- Tracks total daily calories  
+- Tracks protein, carbs, and fat  
+- Displays calorie goal progress  
+- Displays protein goal progress  
+- Shows macro percentage breakdown:
+  - % Calories from Carbs  
+  - % from Protein  
+  - % from Fat  
 
-Carbohydrates
+---
 
-Fat
-
-Fiber
-
-Sugar
-
-Sodium
-
-Displays macro distribution chart
-
-🍲 Custom Recipe Builder
-
-Select multiple ingredients
-
-Enter quantity for each
-
-Automatically calculate total recipe nutrition
-
-View combined macro breakdown
-
-📈 Daily Tracker
-
-Tracks total daily calories
-
-Tracks total daily protein, carbs, and fat
-
-Displays progress toward calorie goal
-
-Displays progress toward protein goal
-
-Shows macro percentage breakdown:
-
-% Calories from Carbs
-
-% from Protein
-
-% from Fat
-
-⚖️ Surplus / Deficit Calculator
+### ⚖️ Surplus / Deficit Calculator
 
 User selects goal:
-
-Maintain
-
-Weight Loss
-
-Weight Gain
-
-Enter weight
-
-Select activity level
+- Maintain  
+- Weight Loss  
+- Weight Gain  
 
 Calculates:
+- Estimated maintenance calories  
+- Recommended target calories  
+- Surplus / deficit amount  
 
-Estimated maintenance calories
+Based on:
+- Simplified Mifflin-St Jeor BMR equation  
+- Activity multiplier logic  
+- 7700 kcal ≈ 1 kg fat principle  
 
-Recommended target calories
+---
 
-Surplus or deficit amount
+### 🧍 BMI Calculator
 
-🧍 BMI Calculator
+- Enter weight and height  
+- Calculates BMI  
+- Displays health classification  
 
-Enter weight and height
+---
 
-Calculates BMI
+## 🧠 Tech Stack
 
-Displays classification
+### 💻 Core Language
+![Python](https://img.shields.io/badge/Python-3776AB?style=flat-square&logo=python&logoColor=white)
 
-🧠 Technical Stack
+### 🚀 Framework
+![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=flat-square&logo=streamlit&logoColor=white)
 
-Python 3.11+
+### 📊 Data Handling
+![Pandas](https://img.shields.io/badge/Pandas-150458?style=flat-square&logo=pandas&logoColor=white)
+![NumPy](https://img.shields.io/badge/NumPy-013243?style=flat-square&logo=numpy&logoColor=white)
 
-Streamlit
+### 🔮 Future Expansion
+![Scikit-Learn](https://img.shields.io/badge/Scikit--Learn-F7931E?style=flat-square&logo=scikitlearn&logoColor=white)
+![TensorFlow](https://img.shields.io/badge/TensorFlow-FF6F00?style=flat-square&logo=tensorflow&logoColor=white)
+![PyTorch](https://img.shields.io/badge/PyTorch-EE4C2C?style=flat-square&logo=pytorch&logoColor=white)
 
-Pandas
+---
 
-NumPy
+## 📊 Dataset
 
-Optional (future expansion):
+The application uses a cleaned nutrition dataset (`database.csv`) containing:
 
-Scikit-learn
+- Dish Name  
+- Calories  
+- Protein  
+- Carbohydrates  
+- Fat  
+- Fiber  
+- Micronutrients  
 
-TensorFlow / PyTorch (for ANN-based custom dish estimation)
+All values standardized per 100 grams.
 
-📊 Dataset
+---
 
-The application uses a cleaned nutrition dataset (database.csv) containing:
+## 📁 Project Structure
 
-Dish Name
-
-Calories
-
-Protein
-
-Carbohydrates
-
-Fat
-
-Fiber
-
-Micronutrients
-
-All values are standardized per 100 grams.
-
-📁 Project Structure
 NUTRICALCI/
 │
 ├── app.py
@@ -147,86 +126,68 @@ NUTRICALCI/
 ├── requirements.txt
 └── README.md
 
-⚙️ Installation & Setup
-1️⃣ Clone Repository
+
+---
+
+## ⚙️ Installation & Setup
+
+### 📥 Clone Repository
+
+```bash
 git clone https://github.com/yourusername/NUTRICALCI.git
 cd NUTRICALCI
 
-2️⃣ Create Virtual Environment
+🧪 Create Virtual Environment
 python -m venv venv
 
 
 Activate:
 
-Windows:
+Windows
 
 venv\Scripts\activate
 
 
-Mac/Linux:
+macOS / Linux
 
 source venv/bin/activate
 
-3️⃣ Install Dependencies
+📦 Install Dependencies
 pip install -r requirements.txt
 
 ▶️ Run the Application
 streamlit run app.py
 
-
-App will open at:
-
-https://nutricalcipro.streamlit.app/
-
-📈 How It Works
+📈 System Logic Flow
 Nutrition Flow
 
 User Input →
 Fetch nutrient data →
 Scale by quantity →
-Update daily session state →
-Tracker analyzes totals →
-Display goals and insights
+Update session state →
+Analyze totals →
+Display goals & insights
 
-Surplus / Deficit Logic
+Energy Balance Logic
 
 BMR calculated using simplified Mifflin-St Jeor equation
 
-Maintenance calories adjusted by activity multiplier
+Maintenance calories adjusted via activity multiplier
 
-Surplus/deficit computed relative to goal
+Surplus / deficit computed relative to goal
 
-7700 kcal ≈ 1 kg fat (energy balance principle)
+7700 kcal ≈ 1 kg fat
 
 🔮 Future Improvements
 
 Weekly tracking graphs
 
-Save daily logs to CSV / database
+Save logs to CSV / database
 
 Food recommendation system
 
-ANN-based nutrient estimation for custom dishes
+ANN-based custom dish nutrient estimation
 
-User authentication system
+User authentication
 
-Cloud deployment (Streamlit Cloud / Docker)
-
-🎯 Why This Project Matters
-
-This project demonstrates:
-
-Clean state management
-
-Practical nutritional calculations
-
-Goal-based tracking
-
-Real-world logic integration
-
-Structured Python architecture
-
-User-focused interface design
-
-It focuses on correctness and clarity over unnecessary complexity.
-
+Docker / cloud deployment
